@@ -8,7 +8,7 @@ namespace management.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         { }
-
+        public DbSet<User> Users { get; set; }
         public DbSet<Product> Products { get; set; }
     }
 
