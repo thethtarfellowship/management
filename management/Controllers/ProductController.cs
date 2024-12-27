@@ -35,6 +35,32 @@ namespace management.Controllers
             }
             return Ok(userId);
         }
+
+        // Get all products for the current user
+        [Authorize]
+        [HttpGet("current-user-products")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetCurrentUserProducts()
+        {
+            // Get the current user's email from the claims
+            //var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userEmail == null)
+            {
+                return Unauthorized("User not authenticated.");
+            }
+
+            // Get the products associated with this email (assuming the 'User' entity has an 'Email' field)
+            var userProducts = await _context.Products
+                .Where(p => p.User.Email == userEmail)
+                .ToListAsync();
+
+            if (!userProducts.Any())
+            {
+                return NotFound("No products found for this user.");
+            }
+
+            return Ok(userProducts);
+        }
     }
 
 }
