@@ -20,5 +20,8 @@ namespace management.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;// Date of account creation
 
         public DateTime UpdatedAt { get; set; } // Date of last update
+
+        // Navigation property
+        public ICollection<Product> Products { get; set; }
     }
 }

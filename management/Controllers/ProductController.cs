@@ -1,4 +1,5 @@
-﻿using management.Data;
+﻿using System.Security.Claims;
+using management.Data;
 using management.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,14 +17,24 @@ namespace management.Controllers
         {
             _context = context;
         }
-        [Authorize]
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetMyModels()
         {
             return await _context.Products.ToListAsync();
         }
       
-
+        [Authorize]
+        [HttpGet("current-user-id")]
+        public ActionResult<string> GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+            return Ok(userId);
+        }
     }
 
 }

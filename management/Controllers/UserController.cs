@@ -16,11 +16,27 @@ namespace management.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
-
-        public UserController(ApplicationDbContext context, IConfiguration configuration)
+        private readonly ClaimsPrincipal _user;
+        public UserController(ApplicationDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _configuration = configuration;
+            _user = httpContextAccessor.HttpContext.User;
+        }
+
+        [Authorize]
+        [HttpGet("current-user")]
+        public IActionResult GetCurrentUser()
+        {
+            var userId = _user.FindFirstValue(ClaimTypes.NameIdentifier);
+            var username = _user.FindFirstValue(ClaimTypes.Name);
+
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(new { userId, username });
         }
 
         [HttpPost("register")]
@@ -74,6 +90,7 @@ namespace management.Controllers
             return Ok(new { token, user = new { user.Username, user.Email } });
         }
 
+    
         private string GenerateJwtToken(User user)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
@@ -84,18 +101,18 @@ namespace management.Controllers
         new Claim(JwtRegisteredClaimNames.Sub, user.Email),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim(ClaimTypes.Name, user.Username),
-        new Claim("role", "USER") // Example claim, add more as needed
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Include the user's ID
+        new Claim("role", user.Role) // Dynamically include the user's role
     };
 
             var token = new JwtSecurityToken(
-                //issuer: _configuration["Jwt:Issuer"],
-                //audience: _configuration["Jwt:Audience"],
-                claims: claims,
                 expires: DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:ExpirationMinutes"])),
-                signingCredentials: creds);
+                signingCredentials: creds,
+                claims: claims);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
     }
 
 }
