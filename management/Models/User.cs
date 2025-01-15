@@ -23,5 +23,6 @@ namespace management.Models
 
         // Navigation property
         public ICollection<Product> Products { get; set; }
+        public ICollection<CartItem> CartItems { get; set; }
     }
 }

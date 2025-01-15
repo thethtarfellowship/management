@@ -12,8 +12,8 @@ using management.Data;
 namespace management.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241227024351_AddUserToProducttable")]
-    partial class AddUserToProducttable
+    [Migration("20250115053130_Two")]
+    partial class Two
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,37 @@ namespace management.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("management.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductId1")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductId1");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CartItems");
+                });
+
             modelBuilder.Entity("management.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -35,6 +66,13 @@ namespace management.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("ImageData")
+                        .HasColumnType("VARBINARY(MAX)");
+
+                    b.Property<string>("ImageMimeType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -91,19 +129,49 @@ namespace management.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("management.Models.CartItem", b =>
+                {
+                    b.HasOne("management.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("management.Models.Product", null)
+                        .WithMany("CartItems")
+                        .HasForeignKey("ProductId1");
+
+                    b.HasOne("management.Models.User", "User")
+                        .WithMany("CartItems")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("management.Models.Product", b =>
                 {
                     b.HasOne("management.Models.User", "User")
                         .WithMany("Products")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("management.Models.Product", b =>
+                {
+                    b.Navigation("CartItems");
+                });
+
             modelBuilder.Entity("management.Models.User", b =>
                 {
+                    b.Navigation("CartItems");
+
                     b.Navigation("Products");
                 });
 #pragma warning restore 612, 618

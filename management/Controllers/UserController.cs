@@ -30,13 +30,14 @@ namespace management.Controllers
         {
             var userId = _user.FindFirstValue(ClaimTypes.NameIdentifier);
             var username = _user.FindFirstValue(ClaimTypes.Name);
+            var userIds = User.FindFirstValue("userId");
 
             if (userId == null)
             {
                 return Unauthorized();
             }
 
-            return Ok(new { userId, username });
+            return Ok(new { userId, username,userIds });
         }
 
         [HttpPost("register")]
@@ -87,7 +88,7 @@ namespace management.Controllers
             // Generate a JWT token if credentials are valid
             var token = GenerateJwtToken(user);
 
-            return Ok(new { token, user = new { user.Username, user.Email } });
+            return Ok(new { token, user = new { user.Username, user.Email,user.Id } });
         }
 
     
@@ -102,7 +103,12 @@ namespace management.Controllers
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim(ClaimTypes.Name, user.Username),
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Include the user's ID
-        new Claim("role", user.Role) // Dynamically include the user's role
+        new Claim("role", user.Role), // Dynamically include the user's role
+         new Claim("email", user.Email),
+         new Claim("userId", user.Id.ToString())
+
+
+
     };
 
             var token = new JwtSecurityToken(
